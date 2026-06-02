@@ -22,6 +22,17 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
     private Timer gameTimer;
     private ArrayList<Ball> balls = new ArrayList<>();
 
+    private int[][] pockets = {
+            {GameConstants.TABLE_X, GameConstants.TABLE_Y},
+            {GameConstants.TABLE_X + GameConstants.TABLE_WIDTH / 2, GameConstants.TABLE_Y},
+            {GameConstants.TABLE_X + GameConstants.TABLE_WIDTH, GameConstants.TABLE_Y},
+            {GameConstants.TABLE_X, GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT},
+            {GameConstants.TABLE_X + GameConstants.TABLE_WIDTH / 2, GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT},
+            {GameConstants.TABLE_X + GameConstants.TABLE_WIDTH, GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT}
+    };
+
+
+
     public GamePanel(MainFrame frame){
         //setBackground(new Color(64 , 15 , 10));
         setLayout(new BorderLayout());
@@ -36,12 +47,7 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
         topPanel.setBackground(new Color(39, 51, 79));
         add(topPanel , BorderLayout.NORTH);
 
-        int startX = GameConstants.TABLE_X + 300 - GameConstants.BALL_RADIUS;
-        int startY = GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT / 2;
-        cueBall = new Ball(startX, startY, BallType.CUE);
-        balls.add(cueBall);
-        addMouseListener(this);
-        addMouseMotionListener(this);
+        setupBalls();
 
         cue = new Cue(CueType.PROFESSIONAL);
 
@@ -105,9 +111,9 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
         g.setColor(Color.GRAY);
         g.drawLine(lineX, GameConstants.TABLE_Y, lineX, GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT);
 
-        cueBall.draw(g);
+        for (Ball ball : balls) ball.draw(g);
 
-        if (!gameTimer.isRunning()) {
+        if (gameTimer == null || !gameTimer.isRunning()) {
             cue.draw((Graphics2D) g, (int)cueBall.getX(), (int)cueBall.getY(), GameConstants.BALL_RADIUS);
         }
     }
@@ -120,18 +126,11 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
         //System.out.println(cueBall.getX() + " " + cueBall.getY());
         //System.out.println(((e.getX() - cueBall.getX())*(e.getX() - cueBall.getX()) + (e.getY() - cueBall.getY())*(e.getY() - cueBall.getY())));
         //System.out.println((GameConstants.BALL_RADIUS * GameConstants.BALL_RADIUS));
-        if( (e.getX() - cueBall.getX())*(e.getX() - cueBall.getX()) + (e.getY() - cueBall.getY())*(e.getY() - cueBall.getY()) <= GameConstants.BALL_RADIUS * GameConstants.BALL_RADIUS){
+        double distance = Math.sqrt(Math.pow(e.getX() - cueBall.getX(), 2) + Math.pow(e.getY() - cueBall.getY(), 2));
+        if (distance <= GameConstants.BALL_RADIUS && !isMoving()) {
             isDragging = true;
             dragOffsetX = (int)cueBall.getX() - e.getX();
             dragOffsetY = (int)cueBall.getY() - e.getY();
-        }
-        else {
-            double distance = Math.sqrt(Math.pow(e.getX() - cueBall.getX(), 2) + Math.pow(e.getY() - cueBall.getY(), 2));
-            if (distance <= GameConstants.BALL_RADIUS) {
-                isDragging = true;
-                dragOffsetX = (int)cueBall.getX() - e.getX();
-                dragOffsetY = (int)cueBall.getY() - e.getY();
-            }
         }
     }
 
@@ -140,11 +139,13 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
         if (isDragging) {
             isDragging = false;
         } else {
+            if(!isMoving()){
             cue.applyTo(cueBall);
             cue.setPullDistance(0);
             startGameLoop();
             repaint();
             revalidate();
+            }
         }
 
     }
@@ -193,7 +194,7 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
     private void startGameLoop() {
         if (gameTimer != null && gameTimer.isRunning()) return;
 
-        gameTimer = new Timer(16, e -> {
+        gameTimer = new Timer(10, e -> {
             updateBalls();
             repaint();
 
@@ -218,9 +219,79 @@ public class GamePanel extends JPanel implements MouseListener , MouseMotionList
         for (Ball ball : balls) {
             ball.move();
         }
+
+        for (int i = 0; i < balls.size(); i++) {
+            for (int j = i + 1; j < balls.size(); j++) {
+                balls.get(i).resolveCollision(balls.get(j));
+            }
+        }
+
+        checkBallPoketed();
+
     }
 
 
+    private void setupBalls() {
+        double startX = GameConstants.TABLE_X + 300 - GameConstants.BALL_RADIUS;
+        double startY = GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT / 2;
+        cueBall = new Ball(startX, startY, BallType.CUE);
+        balls.add(cueBall);
+        addMouseListener(this);
+        addMouseMotionListener(this);
 
+        startX = GameConstants.TABLE_X + GameConstants.TABLE_WIDTH * 0.75;
+        startY = GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT / 2;
+        double radius = GameConstants.BALL_RADIUS;
+        double rowSpacing = radius * Math.sqrt(3);
+
+        BallType[] types = {
+                BallType.SOLID,
+                BallType.STRIPE, BallType.SOLID,
+                BallType.SOLID, BallType.EIGHT, BallType.STRIPE,
+                BallType.STRIPE, BallType.SOLID, BallType.STRIPE, BallType.SOLID,
+                BallType.SOLID, BallType.STRIPE, BallType.SOLID, BallType.STRIPE, BallType.STRIPE
+        };
+
+        int index = 0;
+        for (int row = 0; row < 5; row++) {
+            double rowStartY = startY - (row * radius);
+            for (int col = 0; col <= row; col++) {
+                double posX = startX + (row * rowSpacing);
+                double posY = rowStartY + (col * 2 * radius);
+                balls.add(new Ball(posX, posY, types[index++]));
+            }
+        }
+    }
+
+    private void checkBallPoketed(){
+        for (int i = balls.size()-1 ; i >=0 ; i--){
+            Ball ball = balls.get(i);
+            ball.move();
+
+            for (int[] pocket : pockets) {
+                double dx = ball.getX() - pocket[0];
+                double dy = ball.getY() - pocket[1];
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < GameConstants.POCKET_RADIUS) {
+                    if (ball.getType() == BallType.CUE) {
+                        ball.setX(GameConstants.TABLE_X + 300 - GameConstants.BALL_RADIUS);
+                        ball.setY(GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT / 2);
+                        ball.setVx(0);
+                        ball.setVy(0);
+                    } else {
+                        balls.remove(ball);
+                    }
+                    break;
+                }
+            }
+        }
+
+        for (int i = 0; i < balls.size(); i++) {
+            for (int j = i + 1; j < balls.size(); j++) {
+                balls.get(i).resolveCollision(balls.get(j));
+            }
+        }
+    }
 
 }

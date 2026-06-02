@@ -50,7 +50,15 @@ public class Ball {
         this.pocketed = pocketed;
     }
 
-    public Ball(int x , int y , BallType type){
+    public BallType getType() {
+        return type;
+    }
+
+    public void setType(BallType type) {
+        this.type = type;
+    }
+
+    public Ball(double x , double y , BallType type){
         this.x = x;
         this.y = y;
         this.vx = 0;
@@ -96,11 +104,47 @@ public class Ball {
             vy = -vy;
         }
 
-        vx *= 0.98;
-        vy *= 0.98;
+        vx *= 0.987;
+        vy *= 0.987;
 
         if (Math.abs(vx) < 0.15) vx = 0;
         if (Math.abs(vy) < 0.15) vy = 0;
+    }
+
+    public void resolveCollision(Ball other) {
+        double dx = other.getX() - this.getX();
+        double dy = other.getY() - this.getY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance == 0 || distance >= GameConstants.BALL_RADIUS * 2) {
+            return;
+        }
+
+        double overlap = 0.5 * (GameConstants.BALL_RADIUS * 2 - distance);
+        double nx = dx / distance;
+        double ny = dy / distance;
+
+        this.setX(this.getX() - overlap * nx);
+        this.setY(this.getY() - overlap * ny);
+        other.setX(other.getX() + overlap * nx);
+        other.setY(other.getY() + overlap * ny);
+
+        double relativeVx = other.getVx() - this.getVx();
+        double relativeVy = other.getVy() - this.getVy();
+        double velocityAlongNormal = relativeVx * nx + relativeVy * ny;
+
+        if (velocityAlongNormal > 0) return;
+
+        double restitution = 1.0;
+        double impulse = -(1 + restitution) * velocityAlongNormal / 2;
+
+        double impulseX = impulse * nx;
+        double impulseY = impulse * ny;
+
+        this.setVx(this.getVx() - impulseX);
+        this.setVy(this.getVy() - impulseY);
+        other.setVx(other.getVx() + impulseX);
+        other.setVy(other.getVy() + impulseY);
     }
 
 }

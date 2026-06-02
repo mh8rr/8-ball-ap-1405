@@ -23,11 +23,11 @@ public class Cue {
     }
 
     public void setPullDistance(double distance) {
-        this.pullDistance = Math.min(distance * 0.5, 120);
+        this.pullDistance = Math.min(distance * 0.5, 260);
     }
 
     public void applyTo(Ball cueBall) {
-        double power = pullDistance * 0.2;
+        double power = pullDistance * 0.15;
 
         double vx = -Math.cos(angle) * power;
         double vy = -Math.sin(angle) * power;
@@ -43,7 +43,7 @@ public class Cue {
         int startX = (int) (cueBallX + ballRadius + 10 + pullDistance);
         int cueThickness = 8;
         int startY = cueBallY - (cueThickness / 2);
-        int cueLength = 250;
+        int cueLength = 400;
 
         if (this.type == CueType.BEGINNER) {
             g2d.setColor(new Color(205, 133, 63));
