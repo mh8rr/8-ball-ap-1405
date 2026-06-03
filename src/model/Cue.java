@@ -27,7 +27,7 @@ public class Cue {
     }
 
     public void applyTo(Ball cueBall) {
-        double power = pullDistance * 0.15;
+        double power = pullDistance * 0.25;
 
         double vx = -Math.cos(angle) * power;
         double vy = -Math.sin(angle) * power;

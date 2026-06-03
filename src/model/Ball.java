@@ -1,6 +1,7 @@
 package model;
 
 import config.GameConstants;
+import ui.GamePanel;
 
 import java.awt.*;
 
@@ -9,6 +10,15 @@ public class Ball {
     private double vx , vy;
     private BallType type;
     private boolean pocketed;
+    private boolean hitWall = false;
+
+    public boolean isHitWall() {
+        return hitWall;
+    }
+
+    public void setHitWall(boolean hitWall) {
+        this.hitWall = hitWall;
+    }
 
     public double getX() {
         return x;
@@ -90,16 +100,20 @@ public class Ball {
         y += vy;
 
         if (x - GameConstants.BALL_RADIUS < GameConstants.TABLE_X) {
+            this.hitWall = true;
             x = GameConstants.TABLE_X + GameConstants.BALL_RADIUS;
             vx = -vx;
         } else if (x + GameConstants.BALL_RADIUS > GameConstants.TABLE_X + GameConstants.TABLE_WIDTH) {
+            this.hitWall = true;
             x = GameConstants.TABLE_X + GameConstants.TABLE_WIDTH - GameConstants.BALL_RADIUS;
             vx = -vx;
         }
         if (y - GameConstants.BALL_RADIUS < GameConstants.TABLE_Y) {
+            this.hitWall = true;
             y = GameConstants.TABLE_Y + GameConstants.BALL_RADIUS;
             vy = -vy;
         } else if (y + GameConstants.BALL_RADIUS > GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT) {
+            this.hitWall = true;
             y = GameConstants.TABLE_Y + GameConstants.TABLE_HEIGHT - GameConstants.BALL_RADIUS;
             vy = -vy;
         }
@@ -118,6 +132,10 @@ public class Ball {
 
         if (distance == 0 || distance >= GameConstants.BALL_RADIUS * 2) {
             return;
+        }
+
+        if (this.getType() == BallType.CUE && GamePanel.getFirstBallHitThisTurn() == null) {
+            ui.GamePanel.setFirstBallHitThisTurn(other);
         }
 
         double overlap = 0.5 * (GameConstants.BALL_RADIUS * 2 - distance);
