@@ -24,8 +24,8 @@ public class MainFrame extends JFrame{
         JButton exitBtn  = new JButton("خروج از بازی");
 
         startBtn.addActionListener(e -> showGamePanel());
-        settingsBtn.addActionListener(e -> System.out.println("2"));
-        recordsBtn.addActionListener(e -> System.out.println("3"));
+        settingsBtn.addActionListener(e -> showSettingsPanel());
+        recordsBtn.addActionListener(e -> showRecordsPanel());
         exitBtn.addActionListener(e -> System.exit(0));
 
         panel.add(startBtn);
@@ -37,9 +37,20 @@ public class MainFrame extends JFrame{
     }
 
     public void showGamePanel(){
+        String p1 = config.GameSettings.player1Name;
+        String p2 = config.GameSettings.player2Name;
+
         remove(panel);
-        GamePanel gamePanel = new GamePanel(this);
+        GamePanel gamePanel = new GamePanel(this , p1 , p2);
         add(gamePanel);
+        revalidate();
+        repaint();
+    }
+
+    public void showRecordsPanel(){
+        remove(panel);
+        RecordsPanel recordsPanel = new RecordsPanel(this);
+        add(recordsPanel);
         revalidate();
         repaint();
     }
@@ -49,5 +60,13 @@ public class MainFrame extends JFrame{
         add(panel);
         repaint();
         revalidate();
+    }
+
+    public void showSettingsPanel(){
+        remove(panel);
+        SettingsPanel settingsPanel = new SettingsPanel(this);
+        add(settingsPanel);
+        revalidate();
+        repaint();
     }
 }

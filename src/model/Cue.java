@@ -43,7 +43,7 @@ public class Cue {
         int startX = (int) (cueBallX + ballRadius + 10 + pullDistance);
         int cueThickness = 8;
         int startY = cueBallY - (cueThickness / 2);
-        int cueLength = 400;
+        int cueLength = 300;
 
         if (this.type == CueType.BEGINNER) {
             g2d.setColor(new Color(205, 133, 63));
@@ -55,13 +55,13 @@ public class Cue {
         } else if (this.type == CueType.PROFESSIONAL) {
 
             g2d.setColor(new Color(222, 184, 135));
-            g2d.fillRect(startX, startY, 120, cueThickness);
+            g2d.fillRect(startX, startY, 150, cueThickness);
 
             g2d.setColor(Color.BLACK);
-            g2d.fillRect(startX + 120, startY, 130, cueThickness);
+            g2d.fillRect(startX + 150, startY, 200, cueThickness);
 
             g2d.setColor(Color.LIGHT_GRAY);
-            g2d.fillRect(startX + 115, startY, 5, cueThickness);
+            g2d.fillRect(startX + 145, startY, 5, cueThickness);
 
             g2d.setColor(Color.RED);
             g2d.fillRect(startX, startY, 5, cueThickness);

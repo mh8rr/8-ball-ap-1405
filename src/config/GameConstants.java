@@ -6,10 +6,10 @@ public class GameConstants {
     public static final int FRAME_HEIGHT = 950;
 
 
-    public static final int TABLE_X = 150;
-    public static final int TABLE_Y = 175;
-    public static final int TABLE_WIDTH = 1200;
-    public static final int TABLE_HEIGHT = 600;
+    public static final int TABLE_X = 250;
+    public static final int TABLE_Y = 225;
+    public static final int TABLE_WIDTH = 1000;
+    public static final int TABLE_HEIGHT = 500;
 
 
     public static final int POCKET_RADIUS = 25;
